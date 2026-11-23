@@ -21,7 +21,12 @@ die() { echo "[start] ERROR: $*" >&2; exit 1; }
 [ -n "${ADMIN_PASSWORD:-}" ] || die "ADMIN_PASSWORD is empty. Set it in the service variables."
 [ "${#ADMIN_PASSWORD}" -ge 12 ] || die "ADMIN_PASSWORD must be at least 12 characters."
 [ -n "${PAPERLESS_BASE_URL:-}" ] || die "PAPERLESS_BASE_URL is empty. Set it to the address of your Paperless-ngx, e.g. https://paperless.YOUR-DOMAIN."
-case "$PAPERLESS_BASE_URL" in http://*|https://*) ;; *) die "PAPERLESS_BASE_URL must start with http:// or https:// (got '$PAPERLESS_BASE_URL')." ;; esac
+case "$PAPERLESS_BASE_URL" in
+  http://*|https://*) ;;
+  *) log "PAPERLESS_BASE_URL has no scheme; using https://$PAPERLESS_BASE_URL"; PAPERLESS_BASE_URL="https://$PAPERLESS_BASE_URL" ;;
+esac
+PAPERLESS_BASE_URL="${PAPERLESS_BASE_URL%/}"
+export PAPERLESS_BASE_URL
 [ -n "${PAPERLESS_API_TOKEN:-}" ] || die "PAPERLESS_API_TOKEN is empty. Create one in Paperless-ngx under My Profile > API Auth Token."
 
 # LLM defaults: any OpenAI-compatible API. Other upstream providers (anthropic,
